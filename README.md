@@ -10,6 +10,8 @@
 
 Sistema de gestão de Ordens de Serviço (OS) para equipes de suporte B2B, com controle de acesso por perfil (RBAC), trilha de auditoria completa das mudanças de status, dashboard analítico e exportação de dados.
 
+**Repositório público:** [github.com/RyukoOFC/helpdesk-b2b-dashboard](https://github.com/RyukoOFC/helpdesk-b2b-dashboard). Para ver o código, os prints e a documentação, não é preciso rodar nada localmente.
+
 ---
 
 ## Screenshots e GIFs
