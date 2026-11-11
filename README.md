@@ -14,11 +14,17 @@ Sistema de gestão de Ordens de Serviço (OS) para equipes de suporte B2B, com c
 
 ## Screenshots e GIFs
 
-<!-- Substitua os blocos abaixo pelas imagens reais, por exemplo: docs/screenshots/login.png -->
+### Tela de login com acesso rápido (Demo Portfólio)
 
-| Login (Acesso rápido demo) | Dashboard analítico | Ordem de Serviço (impressão) |
-|:---:|:---:|:---:|
-| `![Login](docs/screenshots/login.png)` | `![Dashboard](docs/screenshots/dashboard.png)` | `![OS](docs/screenshots/os.png)` |
+![Tela de login](docs/screenshots/login.png)
+
+### Painel analítico (visão do Admin)
+
+![Painel analítico do Admin](docs/screenshots/admin.png)
+
+### Fila de chamados
+
+![Fila de chamados](docs/screenshots/chamados.png)
 
 ---
 
