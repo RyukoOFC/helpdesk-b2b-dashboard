@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block titulo %}Painel{% endblock %}
+{% block conteudo %}
+<div class="mb-6 flex flex-wrap items-end justify-between gap-2">
+  <div>
+    <h1 class="text-2xl font-semibold">Painel analítico</h1>
+    <p class="text-sm text-slate-600">
+      {% if eh_gestor %}Visão geral de toda a fila de chamados.{% else %}Acompanhe os seus chamados.{% endif %}
+    </p>
+  </div>
+  {% if eh_gestor %}
+  <div class="flex flex-wrap gap-2">
+    <a href="{{ url_for('chamados.exportar_csv') }}" class="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-100">Exportar CSV</a>
+    <a href="{{ url_for('chamados.novo') }}" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">+ Novo chamado</a>
+  </div>
+  {% else %}
+  <a href="{{ url_for('chamados.novo') }}" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">+ Novo chamado</a>
+  {% endif %}
+</div>
+
+<section aria-label="Indicadores" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <article class="rounded-lg bg-white p-5 shadow border-l-4 border-slate-400">
+    <p class="text-xs uppercase tracking-wide text-slate-500">Total de chamados</p>
+    <p class="mt-2 text-3xl font-bold">{{ kpis.total }}</p>
+  </article>
+  <article class="rounded-lg bg-white p-5 shadow border-l-4 border-blue-500">
+    <p class="text-xs uppercase tracking-wide text-slate-500">Abertos / em andamento</p>
+    <p class="mt-2 text-3xl font-bold">{{ kpis.em_andamento }}</p>
+  </article>
+  <article class="rounded-lg bg-white p-5 shadow border-l-4 border-green-500">
+    <p class="text-xs uppercase tracking-wide text-slate-500">Concluídos</p>
+    <p class="mt-2 text-3xl font-bold">{{ kpis.concluidos }}</p>
+  </article>
+  <article class="rounded-lg bg-white p-5 shadow border-l-4 border-red-500">
+    <p class="text-xs uppercase tracking-wide text-slate-500">Críticos em aberto</p>
+    <p class="mt-2 text-3xl font-bold">{{ kpis.criticos }}</p>
+  </article>
+</section>
+
+{% if eh_gestor and graficos %}
+<section aria-label="Gráficos" class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+  <article class="lg:col-span-2 rounded-lg bg-white p-5 shadow">
+    <h2 class="font-semibold mb-4">Distribuição por status</h2>
+    <div class="relative h-72"><canvas id="grafico-status" aria-label="Gráfico de rosca com chamados por status"></canvas></div>
+  </article>
+  <article class="lg:col-span-3 rounded-lg bg-white p-5 shadow">
+    <h2 class="font-semibold mb-4">Volume por categoria e prioridade</h2>
+    <div class="relative h-72"><canvas id="grafico-categorias" aria-label="Gráfico de barras com chamados por categoria"></canvas></div>
+  </article>
+</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if eh_gestor and graficos %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  window.dadosGraficos = {{ graficos | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endif %}
+{% endblock %}
+

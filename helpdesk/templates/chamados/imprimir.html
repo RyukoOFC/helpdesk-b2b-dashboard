@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ chamado.protocolo }} · Ordem de Serviço</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      @page { margin: 16mm; }
+      body { background: #ffffff !important; }
+    }
+  </style>
+</head>
+<body class="bg-white text-slate-900 text-sm">
+  <div class="print:hidden sticky top-0 border-b bg-slate-50 px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+    <a href="{{ url_for('chamados.detalhe', chamado_id=chamado.id) }}" class="text-sky-700 hover:underline">← Voltar para o chamado</a>
+    <button type="button" onclick="window.print()" class="rounded-md bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-700">Imprimir / Salvar PDF</button>
+  </div>
+
+  <article class="mx-auto max-w-3xl px-6 py-8">
+    <header class="flex items-start justify-between border-b-2 border-slate-900 pb-4">
+      <div>
+        <p class="text-xs uppercase tracking-widest text-slate-500">Help Desk B2B · Ordem de Serviço</p>
+        <h1 class="mt-1 text-2xl font-bold">{{ chamado.protocolo }}</h1>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-slate-500">Emitido em</p>
+        <p class="font-medium">{{ agora.strftime('%d/%m/%Y %H:%M') }}</p>
+      </div>
+    </header>
+
+    <section class="mt-6">
+      <h2 class="text-base font-semibold">{{ chamado.titulo }}</h2>
+      <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3">
+        <div><dt class="text-xs uppercase text-slate-500">Cliente</dt><dd class="font-medium">{{ chamado.cliente.nome }}</dd></div>
+        <div><dt class="text-xs uppercase text-slate-500">Técnico responsável</dt><dd class="font-medium">{{ chamado.tecnico.nome if chamado.tecnico else "Não atribuído" }}</dd></div>
+        <div><dt class="text-xs uppercase text-slate-500">Categoria</dt><dd>{{ chamado.categoria }}</dd></div>
+        <div><dt class="text-xs uppercase text-slate-500">Prioridade</dt><dd>{{ prioridade_ui[chamado.prioridade].rotulo }}</dd></div>
+        <div><dt class="text-xs uppercase text-slate-500">Status atual</dt><dd>{{ status_ui[chamado.status].rotulo }}</dd></div>
+        <div><dt class="text-xs uppercase text-slate-500">Aberto em</dt><dd>{{ chamado.created_at.strftime('%d/%m/%Y %H:%M') }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="mt-6">
+      <h3 class="text-xs uppercase tracking-wide text-slate-500 border-b pb-1">Descrição do problema</h3>
+      <p class="mt-3 whitespace-pre-line">{{ chamado.descricao }}</p>
+    </section>
+
+    <section class="mt-6">
+      <h3 class="text-xs uppercase tracking-wide text-slate-500 border-b pb-1">Histórico de status</h3>
+      <table class="mt-3 w-full text-left">
+        <thead class="text-xs uppercase text-slate-500">
+          <tr><th class="py-1 pr-3">Data</th><th class="py-1 pr-3">De</th><th class="py-1 pr-3">Para</th><th class="py-1">Responsável</th></tr>
+        </thead>
+        <tbody>
+          {% for item in historico %}
+          <tr class="border-t">
+            <td class="py-1.5 pr-3">{{ item.data_mudanca.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td class="py-1.5 pr-3">{{ status_ui[item.status_anterior].rotulo if item.status_anterior else "—" }}</td>
+            <td class="py-1.5 pr-3 font-medium">{{ status_ui[item.status_novo].rotulo }}</td>
+            <td class="py-1.5">{{ item.autor.nome }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="py-2 text-slate-500">Nenhuma alteração registrada.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="mt-6">
+      <h3 class="text-xs uppercase tracking-wide text-slate-500 border-b pb-1">Comentários</h3>
+      <ul class="mt-3 space-y-3">
+        {% for comentario in comentarios %}
+        <li class="border-l-2 border-slate-300 pl-3">
+          <p class="text-xs text-slate-500"><strong class="text-slate-800">{{ comentario.autor.nome }}</strong> · {{ comentario.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+          <p class="whitespace-pre-line">{{ comentario.conteudo }}</p>
+        </li>
+        {% else %}
+        <li class="text-slate-500">Nenhum comentário.</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <footer class="mt-10 border-t pt-4 text-center text-xs text-slate-500">
+      Documento gerado pelo Sistema de Gestão de Ordens de Serviço · Projeto de portfólio
+    </footer>
+  </article>
+</body>
+</html>

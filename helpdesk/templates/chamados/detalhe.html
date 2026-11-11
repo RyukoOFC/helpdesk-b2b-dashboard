@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% from "_componentes.html" import badge_status, badge_prioridade with context %}
+{% block titulo %}{{ chamado.protocolo }}{% endblock %}
+{% block conteudo %}
+<div class="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+  <a href="{{ url_for('chamados.listar') }}" class="text-sky-700 hover:underline">← Voltar para chamados</a>
+  <a href="{{ url_for('chamados.imprimir', chamado_id=chamado.id) }}" target="_blank" rel="noopener" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 font-medium text-slate-800 hover:bg-slate-100">Imprimir / Salvar PDF</a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 space-y-6">
+    <section class="rounded-lg bg-white p-6 shadow" aria-labelledby="titulo-chamado">
+      <p class="font-mono text-xs text-slate-500">{{ chamado.protocolo }}</p>
+      <h1 id="titulo-chamado" class="mt-1 text-2xl font-semibold">{{ chamado.titulo }}</h1>
+      <div class="mt-3 flex flex-wrap gap-2">
+        {{ badge_status(chamado.status) }}
+        {{ badge_prioridade(chamado.prioridade) }}
+        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">{{ chamado.categoria }}</span>
+      </div>
+      <p class="mt-5 whitespace-pre-line text-slate-700">{{ chamado.descricao }}</p>
+
+      <dl class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm border-t pt-5">
+        <div><dt class="text-slate-500">Cliente</dt><dd class="font-medium">{{ chamado.cliente.nome }}</dd></div>
+        <div><dt class="text-slate-500">Técnico responsável</dt><dd class="font-medium">{{ chamado.tecnico.nome if chamado.tecnico else "Não atribuído" }}</dd></div>
+        <div><dt class="text-slate-500">Aberto em</dt><dd>{{ chamado.created_at.strftime('%d/%m/%Y %H:%M') }}</dd></div>
+        <div><dt class="text-slate-500">Última atualização</dt><dd>{{ chamado.updated_at.strftime('%d/%m/%Y %H:%M') }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="rounded-lg bg-white p-6 shadow" aria-labelledby="titulo-comentarios">
+      <h2 id="titulo-comentarios" class="font-semibold mb-4">Comentários</h2>
+      <ul class="space-y-4">
+        {% for comentario in comentarios %}
+        <li class="rounded-md border p-4 {% if comentario.visibilidade_interna %}border-amber-300 bg-amber-50{% else %}border-slate-200{% endif %}">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+            <span>
+              <strong class="text-slate-800">{{ comentario.autor.nome }}</strong>
+              · {{ comentario.created_at.strftime('%d/%m/%Y %H:%M') }}
+            </span>
+            {% if comentario.visibilidade_interna %}
+            <span class="rounded-full bg-amber-200 px-2 py-0.5 font-semibold text-amber-900">Nota interna</span>
+            {% endif %}
+          </div>
+          <p class="mt-2 whitespace-pre-line text-sm text-slate-700">{{ comentario.conteudo }}</p>
+        </li>
+        {% else %}
+        <li class="text-sm text-slate-500">Nenhum comentário ainda.</li>
+        {% endfor %}
+      </ul>
+
+      <form method="post" action="{{ url_for('chamados.comentar', chamado_id=chamado.id) }}" class="mt-6 space-y-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="conteudo" class="block text-sm font-medium">Novo comentário</label>
+        <textarea id="conteudo" name="conteudo" rows="3" maxlength="2000" required
+                  class="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"></textarea>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          {% if eh_gestor %}
+          <label class="inline-flex items-center gap-2 text-sm text-amber-800">
+            <input type="checkbox" name="visibilidade_interna" class="rounded border-slate-300">
+            Nota interna (visível apenas para técnicos e admins)
+          </label>
+          {% else %}
+          <span></span>
+          {% endif %}
+          <button type="submit" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">Enviar</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <aside class="space-y-6">
+    {% if eh_gestor %}
+    <section class="rounded-lg bg-white p-6 shadow" aria-labelledby="titulo-gestao">
+      <h2 id="titulo-gestao" class="font-semibold mb-4">Gestão do chamado</h2>
+
+      {% if chamado.tecnico_id != usuario_atual.id %}
+      <form method="post" action="{{ url_for('chamados.assumir', chamado_id=chamado.id) }}" class="mb-5">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="w-full rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-500">
+          Assumir chamado
+        </button>
+      </form>
+      {% endif %}
+
+      {% if proximos_status %}
+      <form method="post" action="{{ url_for('chamados.alterar_status', chamado_id=chamado.id) }}" class="space-y-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="novo-status" class="block text-sm font-medium">Alterar status para</label>
+        <select id="novo-status" name="status" required class="w-full rounded border border-slate-300 px-3 py-2 text-sm">
+          <option value="" disabled selected>Selecione...</option>
+          {% for valor in proximos_status %}
+          <option value="{{ valor }}">{{ status_ui[valor].rotulo }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">Aplicar</button>
+      </form>
+      {% else %}
+      <p class="text-sm text-slate-500">Este chamado está em estado final e não pode mais mudar de status.</p>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    <section class="rounded-lg bg-white p-6 shadow" aria-labelledby="titulo-timeline">
+      <h2 id="titulo-timeline" class="font-semibold mb-4">Linha do tempo</h2>
+      <ol class="relative border-l border-slate-200 ml-2 space-y-5">
+        {% for evento in timeline %}
+        <li class="ml-5">
+          <span class="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-slate-400"></span>
+          <p class="text-sm">
+            {% if evento.status_anterior %}
+            <span class="text-slate-500">{{ status_ui[evento.status_anterior].rotulo }}</span> →
+            {% endif %}
+            <strong>{{ status_ui[evento.status_novo].rotulo }}</strong>
+          </p>
+          <p class="text-xs text-slate-500">
+            {{ evento.autor.nome }} · {{ evento.data_mudanca.strftime('%d/%m/%Y %H:%M') }}
+          </p>
+        </li>
+        {% endfor %}
+      </ol>
+    </section>
+  </aside>
+</div>
+{% endblock %}

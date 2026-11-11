@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block titulo %}Gestão de usuários{% endblock %}
+{% block conteudo %}
+<div class="mb-6">
+  <h1 class="text-2xl font-semibold">Gestão de usuários</h1>
+  <p class="text-sm text-slate-600">Liste as contas, crie novos acessos e ajuste os perfis.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <section class="lg:col-span-2 rounded-lg bg-white p-6 shadow" aria-labelledby="titulo-lista">
+    <h2 id="titulo-lista" class="font-semibold mb-4">Usuários cadastrados ({{ usuarios|length }})</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="text-xs uppercase text-slate-500 border-b">
+          <tr>
+            <th class="py-2 pr-3">Nome</th>
+            <th class="py-2 pr-3">E-mail</th>
+            <th class="py-2 pr-3">Perfil</th>
+            <th class="py-2">Alterar perfil</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for usuario in usuarios %}
+          <tr class="border-b last:border-0 align-middle">
+            <td class="py-3 pr-3 font-medium">{{ usuario.nome }}{% if usuario.id == usuario_atual.id %} <span class="text-xs text-slate-500">(você)</span>{% endif %}</td>
+            <td class="py-3 pr-3 text-slate-600">{{ usuario.email }}</td>
+            <td class="py-3 pr-3">
+              <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold {{ role_ui[usuario.role].classe }}">{{ role_ui[usuario.role].rotulo }}</span>
+            </td>
+            <td class="py-3">
+              {% if usuario.id == usuario_atual.id %}
+                <span class="text-xs text-slate-400">Não permitido</span>
+              {% else %}
+              <form method="post" action="{{ url_for('usuarios.alterar_papel', usuario_id=usuario.id) }}" class="flex items-center gap-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label class="sr-only" for="papel-{{ usuario.id }}">Perfil de {{ usuario.nome }}</label>
+                <select id="papel-{{ usuario.id }}" name="role" class="rounded-md border border-slate-300 px-2 py-1 text-sm">
+                  {% for papel in papeis %}
+                  <option value="{{ papel }}" {% if papel == usuario.role %}selected{% endif %}>{{ role_ui[papel].rotulo }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="rounded-md bg-slate-900 px-3 py-1 text-xs font-medium text-white hover:bg-slate-700">Salvar</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="rounded-lg bg-white p-6 shadow" aria-labelledby="titulo-novo">
+    <h2 id="titulo-novo" class="font-semibold mb-4">Nova conta</h2>
+    <form method="post" action="{{ url_for('usuarios.criar') }}" class="space-y-4" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div>
+        <label for="nome" class="block text-sm font-medium">Nome</label>
+        <input id="nome" name="nome" type="text" maxlength="120" value="{{ valores.nome }}"
+          class="mt-1 w-full rounded-md border px-3 py-2 {% if erros.nome %}border-red-500{% else %}border-slate-300{% endif %}">
+        {% if erros.nome %}<p class="mt-1 text-xs text-red-600">{{ erros.nome }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label for="email" class="block text-sm font-medium">E-mail</label>
+        <input id="email" name="email" type="email" maxlength="160" value="{{ valores.email }}"
+          class="mt-1 w-full rounded-md border px-3 py-2 {% if erros.email %}border-red-500{% else %}border-slate-300{% endif %}">
+        {% if erros.email %}<p class="mt-1 text-xs text-red-600">{{ erros.email }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label for="senha" class="block text-sm font-medium">Senha inicial</label>
+        <input id="senha" name="senha" type="password" minlength="8" autocomplete="new-password"
+          class="mt-1 w-full rounded-md border px-3 py-2 {% if erros.senha %}border-red-500{% else %}border-slate-300{% endif %}">
+        {% if erros.senha %}<p class="mt-1 text-xs text-red-600">{{ erros.senha }}</p>{% else %}<p class="mt-1 text-xs text-slate-500">Mínimo de 8 caracteres.</p>{% endif %}
+      </div>
+
+      <div>
+        <label for="role" class="block text-sm font-medium">Perfil</label>
+        <select id="role" name="role" class="mt-1 w-full rounded-md border px-3 py-2 {% if erros.role %}border-red-500{% else %}border-slate-300{% endif %}">
+          {% for papel in papeis %}
+          <option value="{{ papel }}" {% if papel == valores.role %}selected{% endif %}>{{ role_ui[papel].rotulo }}</option>
+          {% endfor %}
+        </select>
+        {% if erros.role %}<p class="mt-1 text-xs text-red-600">{{ erros.role }}</p>{% endif %}
+      </div>
+
+      <button type="submit" class="w-full rounded-md bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-700">Criar conta</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

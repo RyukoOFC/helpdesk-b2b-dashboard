@@ -1,0 +1,9 @@
+{% macro badge_status(status) -%}
+{% set info = status_ui[status] %}
+<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ info.classe }}">{{ info.rotulo }}</span>
+{%- endmacro %}
+
+{% macro badge_prioridade(prioridade) -%}
+{% set info = prioridade_ui[prioridade] %}
+<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ info.classe }}">{{ info.rotulo }}</span>
+{%- endmacro %}

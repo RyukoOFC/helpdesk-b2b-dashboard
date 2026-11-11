@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block titulo %}Novo chamado{% endblock %}
+{% block conteudo %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-semibold mb-1">Abrir novo chamado</h1>
+  <p class="text-sm text-slate-600 mb-6">O protocolo será gerado automaticamente após o envio.</p>
+
+  <form method="post" action="{{ url_for('chamados.novo') }}" novalidate class="space-y-5 rounded-lg bg-white p-6 shadow">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div>
+      <label for="titulo" class="block text-sm font-medium mb-1">Título</label>
+      <input id="titulo" name="titulo" type="text" maxlength="150" value="{{ valores.titulo }}"
+             aria-invalid="{{ 'true' if erros.titulo else 'false' }}"
+             class="w-full rounded border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500">
+      {% if erros.titulo %}<p class="mt-1 text-xs text-red-600">{{ erros.titulo }}</p>{% endif %}
+    </div>
+
+    <div>
+      <label for="descricao" class="block text-sm font-medium mb-1">Descrição</label>
+      <textarea id="descricao" name="descricao" rows="5" aria-invalid="{{ 'true' if erros.descricao else 'false' }}"
+                class="w-full rounded border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-500">{{ valores.descricao }}</textarea>
+      {% if erros.descricao %}<p class="mt-1 text-xs text-red-600">{{ erros.descricao }}</p>{% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <div>
+        <label for="categoria" class="block text-sm font-medium mb-1">Categoria</label>
+        <select id="categoria" name="categoria" class="w-full rounded border border-slate-300 px-3 py-2">
+          <option value="">Selecione…</option>
+          {% for cat in categorias %}
+          <option value="{{ cat }}" {% if cat == valores.categoria %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+        {% if erros.categoria %}<p class="mt-1 text-xs text-red-600">{{ erros.categoria }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label for="prioridade" class="block text-sm font-medium mb-1">Prioridade</label>
+        <select id="prioridade" name="prioridade" class="w-full rounded border border-slate-300 px-3 py-2">
+          {% for valor in prioridade_opcoes %}
+          <option value="{{ valor }}" {% if valor == valores.prioridade %}selected{% endif %}>{{ prioridade_ui[valor].rotulo }}</option>
+          {% endfor %}
+        </select>
+        {% if erros.prioridade %}<p class="mt-1 text-xs text-red-600">{{ erros.prioridade }}</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-2">
+      <a href="{{ url_for('chamados.listar') }}" class="text-sm text-slate-600 hover:underline">Cancelar</a>
+      <button type="submit" class="rounded-md bg-slate-900 px-5 py-2 text-sm font-medium text-white hover:bg-slate-700">Abrir chamado</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
